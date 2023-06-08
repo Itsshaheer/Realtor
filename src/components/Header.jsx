@@ -1,9 +1,22 @@
-import React from 'react'
+import { getAuth, onAuthStateChanged } from 'firebase/auth'
+import React, { useEffect, useState } from 'react'
 import {useLocation, useNavigate} from 'react-router-dom'
 
 function Header() {
+    const[pageState,setPageState]=useState('Sign In')
     const location= useLocation()
     const navigate= useNavigate()
+    const auth= getAuth()
+    useEffect(()=>{
+        onAuthStateChanged(auth, (user)=>{
+        if(user){
+            setPageState('Profile')
+        } else{
+            setPageState('Sign In')
+        }
+
+        })
+    }, [auth])
     function pathMathRoute(route){
         if(route === location.pathname)
         return true
@@ -16,12 +29,12 @@ function Header() {
          </div>  
          <div>
             <ul className='flex space-x-10 cursor-pointer'>
-                <li className= {`py-3 text-sm font-semibold text-gray-400 
+                <li className= {`cursor-pointer py-3 text-sm font-semibold text-gray-400 
             ${pathMathRoute('/') && "text-black  border-b-red-500 border-b-[3px]"}`} onClick={()=>navigate('/')}>Home</li>
-                <li  className= {`py-3 text-sm font-semibold text-gray-400 
+                <li  className= {`cursor-pointer py-3 text-sm font-semibold text-gray-400 
             ${pathMathRoute("/offers") && "text-black border-b-red-500 border-b-[3px] "}`}onClick={()=>navigate('/offers')}>Offers</li>
-                <li className= {`py-3 text-sm font-semibold text-gray-400 
-            ${pathMathRoute("/sign-in") && "text-black border-b-red-500 border-b-[3px] "}`} onClick={()=>navigate('/sign-in')}>Sign In</li>
+                <li className= {`cursor-pointer py-3 text-sm font-semibold text-gray-400 
+            ${(pathMathRoute("/sign-in") ||  pathMathRoute("/profile")) && "text-black border-b-red-500 border-b-[3px] "}`} onClick={()=>navigate('/profile')}>{pageState}</li>
             </ul>
             </div> 
         </header>

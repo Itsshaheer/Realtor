@@ -9,7 +9,7 @@ import SignUp from './pages/SignUp';
 import Header from './components/Header';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
+import PrivateRoute from './pages/PrivateRoute';
 function App() {
   return (
     <>
@@ -19,7 +19,9 @@ function App() {
         <Route path="/" element={<Home/>}> </Route>
         <Route path="/forgot-password" element={<ForgotPassword/>}> </Route>
         <Route path="/offers" element={<Offers/>}> </Route>
+        <Route path='/profile' element={<PrivateRoute/>}>
         <Route path="/profile" element={<Profile/>}> </Route>
+        </Route>
         <Route path="/sign-in" element={<SignIn/>}> </Route>
         <Route path="/sign-up" element={<SignUp/>}> </Route>
       </Routes>
