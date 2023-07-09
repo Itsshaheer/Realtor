@@ -1,17 +1,18 @@
 import { getAuth, updateProfile } from 'firebase/auth'
-import { doc, updateDoc } from 'firebase/firestore'
-import React, { useState } from 'react'
+import { collection, deleteDoc, doc, getDocs, orderBy, query, updateDoc, where } from 'firebase/firestore'
+import React, { useEffect, useState } from 'react'
 import {useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { db } from '../firebase'
 import { FcHome } from 'react-icons/fc'
 import { Link } from 'react-router-dom'
+import ListingItem from '../components/ListingItem'
 
 export default function Profile() {
     const [changeDetail, setChangeDetail]= useState(false)
     const navigate= useNavigate()
+const [listings,setListings]=useState([])
 
-   
     
     function onLogout(){
         auth.signOut()
@@ -34,6 +35,7 @@ export default function Profile() {
         }
 
     }
+
     const auth= getAuth()
     const [formData, setFormData]= useState({
         name:auth.currentUser.displayName,
@@ -47,6 +49,36 @@ export default function Profile() {
             ...prevState,
             [e.target.id]: e.target.value,
         }))}
+        useEffect(()=>{
+async function fetchuserListing(){
+    const listingRef= collection(db,'listing')
+    const q= query(listingRef, where('userRef','==', auth.currentUser.uid), orderBy('timestamp', 'desc')
+    )
+    const querySnap= await getDocs(q)
+    let listings= []
+    querySnap.forEach((doc)=>{
+        return listings.push({
+            id: doc.id,
+            data: doc.data()
+        })
+    })
+    setListings(listings)
+} 
+fetchuserListing()
+        },[auth.currentUser.uid]);
+        async function onDelete(listingID){
+if(window.confirm('Are you sure you want to delete this listing?')){
+    await deleteDoc(doc(db,'listing',listingID))
+    const updatedListings= listings.filter(
+        (listing) => listing.id !== listingID
+    )
+    setListings(updatedListings)
+    toast.success('Deleted Listing')
+}
+        }
+        function onEdit(listingID){
+navigate(`/edit-listing/${listingID}`)
+        }
   return (
     <>
     <section className='flex justify-center items-center flex-col'>
@@ -66,10 +98,20 @@ export default function Profile() {
                 </div>
             </form>
             
-            <button type='submit' className='w-1/4 bg-blue-600 text-white uppercase px-7 py-3 font-medium
-            hover:bg-blue-800 mt-6'> <Link to='/create-listing'></Link>Sell Or Rent Home</button>
+            <button type='submit' onClick={()=>navigate('/create-listing')}className='w-1/4 bg-blue-600 text-white uppercase px-7 py-3 font-medium
+            hover:bg-blue-800 mt-6'>Sell Or Rent Home</button>
     
     </section>
+    <div className='max-w 6x-l px-3 mt-6'>
+        <h2 className='text-2xl text-center font-semibold'>My Listings</h2>
+        <ul className='sm:grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-3'>
+    
+            {listings.map((listing)=>(
+                <ListingItem key={listing.id}  id={listing.id} listing={listing.data} onDelete={()=>onDelete(listing.id)}
+                onEdit={()=>onEdit(listing.id)}/>
+            ))}
+        </ul>
+    </div>
     </>
   )
 }

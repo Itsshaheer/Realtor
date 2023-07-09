@@ -1,16 +1,17 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { toast } from 'react-toastify';
 import{getStorage, ref, uploadBytesResumable, getDownloadURL} from 'firebase/storage'
 import {getAuth} from 'firebase/auth'
 import {v4 as uuidv4} from 'uuid'
-import {addDoc, collection, serverTimestamp} from 'firebase/firestore'
+import {addDoc, collection, doc, getDoc, serverTimestamp, updateDoc} from 'firebase/firestore'
 import {db} from '../firebase'
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
-function CreateListing() {
+function EditListing() {
+    const [listing, setListing]= useState(false)
     const navigate= useNavigate()
     const auth= getAuth()
-    const[geoLocationEnable,setgeoLocationEnable]=useState(true)
+    const[geoLocationEnable,setgeoLocationEnable]=useState(false)
     const [formData, setFormData]= useState({
 type:'rent',
 name:'',
@@ -25,10 +26,50 @@ regularPrice:0,
 discountPrice:0,
 latitude: 0,
 longitude:0,
-images:{}
+images:{},
     })
+    const {
+        type,
+        name,
+        bedrooms,
+        bathrooms,
+        parking,
+        adress,
+        furnished,
+        description,
+        offer,
+        regularPrice,
+        discountPrice,
+        latitude,
+        longitude,
+        images,
+      } = formData;
+    
+    const params= useParams()
+useEffect(()=>{
+async function fetchListing(){
+    const docRef= doc(db, 'listing',params.listingId)
+    const docSnap= await getDoc(docRef)
+    if (docSnap.exists()){
+setListing(docSnap.data())
+setFormData({...docSnap.data(),})
+    }
+    else {
+        navigate('/')
+        toast.error('Listing not found')
+        
+    }
 
-    const {type,name,bedrooms,bathrooms,parking,furnished,adress,description,offer,regularPrice,discountPrice,latitude,longitude,images}=formData
+}
+fetchListing()
+},[navigate,params.listingId])
+useEffect(()=>{
+if(listing && listing.userRef !== auth.currentUser.uid){
+    toast.error('You Cant Edit')
+    navigate('/')
+}
+}, [auth.currentUser.uid, listing, navigate])
+    
 
     function onChange(e){
         let boolean = null;
@@ -57,16 +98,17 @@ images:{}
 
       async function onSubmit(e){
         e.preventDefault()
-        
+    
         if(images.length> 6){
             toast.error("Error")
         return
         }
-        let geoLocation={}
+        
         let location
         if(geoLocationEnable){
-            geoLocation.
-            geoLocation.lng= longitude
+        
+        } else{
+           
         } 
 
         async function storeImage(image) {
@@ -119,18 +161,20 @@ images:{}
        const formDataCopy= {
         ...formData,
         imgUrls,
-        geoLocation,
-
+        
         timestamp: serverTimestamp(),
         userRef: auth.currentUser.uid
 
        };
        delete formDataCopy.images 
-      
+       delete formDataCopy.latitude
+       delete formDataCopy.longitude
        !formDataCopy.offer && delete formDataCopy.discountPrice
-     const docRef= await addDoc(collection(db, 'listing'), formDataCopy);
-       
-toast.success('Listing Created')
+       const docRef = doc(db, "listing", params.listingId);
+
+       await updateDoc(docRef, formDataCopy);
+   
+toast.success('Listing Changed')
 navigate(`/category/${formDataCopy.type}/${docRef.id}`)
 
         
@@ -139,7 +183,7 @@ navigate(`/category/${formDataCopy.type}/${docRef.id}`)
   
     return (
     <main className='max-w-md px-2 mx-auto'>
-        <h1 className='text-5xl text-center mt-6 font-bold'>Create A Listing</h1>
+        <h1 className='text-5xl text-center mt-6 font-bold'>Edit The Listing</h1>
         <form onSubmit={onSubmit}>
             <p className='text-lg mt-6 font-semibold'>Sell / Rent</p>
             <div className='flex'>
@@ -189,7 +233,7 @@ bg-white-border border-gray-300 focus:text-gray-700 mb-6'/>
             <p className='text-lg mt-6 font-semibold'>Adress</p>
 <textarea type="text" id='adress' placeholder='Adress' value={adress}onChange={onChange} className='w-full px-4 py-2 text-xl text-gray-700
 bg-white-border border-gray-300 focus:text-gray-700 mb-6'/>
-{geoLocationEnable && (
+{!geoLocationEnable && (
     <div>
         <div>
             <p className='text-lg font-semibold'>Latitude</p>
@@ -262,12 +306,11 @@ bg-white-border border-gray-300 focus:text-gray-700 mb-6'/>
     <p className='text-gray-600'> The first image will be the cover (max 6)</p>
     <input type="file"  id='images' onChange={onChange} accept='.jpg,.png,.jpeg' multiple required className='w-full px-3 py-1.5 text-gray-700 bg-white border border-gray-300 rounded'/>
             </div>
-            <button  type='submit' className='mb-6 w-full px-7 py-3 text-white font-medium bg-blue-600 text-lg uppercase rounded shadow-md hover:bg-blue-900'>Create Listing</button>
-
+            <button  type='submit' className='mb-6 w-full px-7 py-3 text-white font-medium bg-blue-600 text-lg uppercase rounded shadow-md hover:bg-blue-900'>Edit Listing</button>
         </form>
- 
+
     </main>
   )
 }
 
-export default CreateListing
+export default EditListing
