@@ -65,9 +65,7 @@ images:{}
         let geoLocation={}
         let location
         if(geoLocationEnable){
-            geoLocation.
-            geoLocation.lng= longitude
-        } 
+        }
 
         async function storeImage(image) {
             return new Promise((resolve, reject) => {

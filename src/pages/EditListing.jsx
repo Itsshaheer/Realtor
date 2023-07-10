@@ -167,8 +167,7 @@ if(listing && listing.userRef !== auth.currentUser.uid){
 
        };
        delete formDataCopy.images 
-       delete formDataCopy.latitude
-       delete formDataCopy.longitude
+       
        !formDataCopy.offer && delete formDataCopy.discountPrice
        const docRef = doc(db, "listing", params.listingId);
 
