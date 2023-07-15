@@ -13,6 +13,7 @@ import PrivateRoute from './pages/PrivateRoute';
 import CreateListing from './pages/CreateListing';
 import EditListing from './pages/EditListing';
 import Listing from './pages/Listing';
+import Category from './pages/Category';
 function App() {
   return (
     <>
@@ -22,6 +23,7 @@ function App() {
         <Route path="/" element={<Home/>}> </Route>
         <Route path="/forgot-password" element={<ForgotPassword/>}> </Route> 
         <Route path="/offers" element={<Offers/>}> </Route>
+        <Route path="/category/:categoryName" element={<Category/>}> </Route>
         <Route path="/category/:categoryName/:listingId" element={<Listing/>}> </Route>
         <Route path='/profile' element={<PrivateRoute/>}>
         <Route path="/profile" element={<Profile/>}> </Route>

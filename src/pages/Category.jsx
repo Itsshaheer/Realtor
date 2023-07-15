@@ -13,10 +13,11 @@ import { db } from "../firebase";
 
 import ListingItem from "../components/ListingItem";
 import { async } from "@firebase/util";
+import { useParams } from "react-router";
 
-export default function Offers() {
+export default function Category() {
   const [listings, setListings] = useState(true);
-
+const params= useParams()
   const [lastFetchedListing, setLastFetchListing] = useState(true);
   useEffect(() => {
     async function fetchListings() {
@@ -24,7 +25,7 @@ export default function Offers() {
         const listingRef = collection(db, "listing");
         const q = query(
           listingRef,
-          where("offer", "==", true),
+          where("type", "==", params.categoryName),
           orderBy("timestamp", "desc"),
           limit(8)
         );
@@ -46,14 +47,14 @@ export default function Offers() {
     }
 
     fetchListings();
-  }, []);
+  }, [params.categoryName]);
 
   async function onFetchMoreListings() {
     try {
       const listingRef = collection(db, "listings");
       const q = query(
         listingRef,
-        where("offer", "==", true),
+        where("type", "==", params.categoryName),
         orderBy("timestamp", "desc"),
         startAfter(lastFetchedListing),
         limit(4)
@@ -77,7 +78,7 @@ export default function Offers() {
 
   return (
     <div className="max-w-6xl mx-auto px-3">
-      <h1 className="text-3xl text-center mt-6 font-bold mb-6">Offers</h1>
+      <h1 className="text-3xl text-center mt-6 font-bold mb-6">{params.categoryName === 'rent' ? 'Places for Rent': 'Places for Sale'}</h1>
       {listings && listings.length > 0 ? (
         <>
           <main>
